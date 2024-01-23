@@ -1,1 +1,1 @@
-export const validateMsg = 'Подтвердите, что Вы не бот'
+export const validateMsg = 'Подтвердите, что Вы не бот';

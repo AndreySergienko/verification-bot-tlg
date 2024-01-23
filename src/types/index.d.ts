@@ -1,5 +1,5 @@
-import TelegramBot from "node-telegram-bot-api";
+import TelegramBot from 'node-telegram-bot-api';
 
 declare global {
-    var bot: TelegramBot;
+  var bot: TelegramBot;
 }
