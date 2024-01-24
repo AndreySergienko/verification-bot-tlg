@@ -37,9 +37,15 @@ export class BotService implements OnModuleInit {
           const isInclude = await this.botRepository.findOne({
             where: { userId },
           });
-          if (isInclude) return;
           const chatId = chat.id;
-          await this.botRepository.create({ userId, date, chatId });
+          if (isInclude) {
+            await this.botRepository.update(
+              { chatId, userId, date },
+              { where: { userId } },
+            );
+          } else {
+            await this.botRepository.create({ userId, date, chatId });
+          }
           const login = from.first_name || from.last_name || from.username;
           await global.bot.sendMessage(
             userId,
