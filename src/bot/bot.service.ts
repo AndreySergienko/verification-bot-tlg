@@ -6,14 +6,21 @@ import { useSendMessage } from '../hooks/useSendMessage';
 import { btnActions } from '../utils/keyboard';
 import { validateMsg } from '../utils/messages';
 
-function hasPassedDay(date: number) {
-  return Date.now() - 24 * 60 * 60 * 1000 > date * 1000;
+function hasPassedTwoDays(date: number) {
+  return Date.now() - 48 * 60 * 60 * 1000 > date * 1000;
 }
 
 @Injectable()
 export class BotService implements OnModuleInit {
   constructor(@InjectModel(Bot) private botRepository: typeof Bot) {
     global.bot = new TelegramBot(process.env.TOKEN_BOT, { polling: true });
+  }
+
+  async answerClickVerification(userId: number, callback_query_id: string) {
+    await this.botRepository.destroy({ where: { userId } });
+    await global.bot.answerCallbackQuery({
+      callback_query_id,
+    });
   }
 
   async startBot() {
@@ -55,13 +62,12 @@ export class BotService implements OnModuleInit {
           const userId = from.id;
           const user = await this.botRepository.findOne({ where: { userId } });
           if (!user) return;
-          if (hasPassedDay(user.date)) return;
+          if (hasPassedTwoDays(user.date)) {
+            await this.answerClickVerification(userId, callback_query_id);
+            return;
+          }
           await global.bot.approveChatJoinRequest(user.chatId, userId);
-          await this.botRepository.destroy({ where: { userId } });
-          // Method has deprecated
-          await global.bot.answerCallbackQuery({
-            callback_query_id,
-          });
+          await this.answerClickVerification(userId, callback_query_id);
         } catch (e) {
           console.log(e);
         }

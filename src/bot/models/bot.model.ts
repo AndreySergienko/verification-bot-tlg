@@ -16,12 +16,12 @@ export class Bot extends Model<Bot, BotModelAttrs> {
   })
   id: number;
 
-  @Column({ type: DataType.BIGINT })
+  @Column({ type: DataType.BIGINT, unique: false })
   chatId: number;
 
   @Column({ type: DataType.BIGINT, unique: true })
   userId: number;
 
-  @Column({ type: DataType.BIGINT, allowNull: false })
+  @Column({ type: DataType.BIGINT })
   date: number;
 }
