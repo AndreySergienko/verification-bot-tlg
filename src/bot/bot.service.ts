@@ -19,7 +19,12 @@ export class BotService implements OnModuleInit {
   async startBot() {
     global.bot.on(
       'chat_join_request',
-      async ({ user_chat_id, chat, date }: TelegramBot.ChatJoinRequest) => {
+      async ({
+        user_chat_id,
+        chat,
+        date,
+        from,
+      }: TelegramBot.ChatJoinRequest) => {
         try {
           const userId = user_chat_id;
           const isInclude = await this.botRepository.findOne({
@@ -28,9 +33,10 @@ export class BotService implements OnModuleInit {
           if (isInclude) return;
           const chatId = chat.id;
           await this.botRepository.create({ userId, date, chatId });
+          const login = from.first_name || from.last_name || from.username;
           await global.bot.sendMessage(
             userId,
-            validateMsg,
+            validateMsg(login),
             useSendMessage({
               inline_keyboard: btnActions(userId),
               remove_keyboard: true,
@@ -44,7 +50,7 @@ export class BotService implements OnModuleInit {
 
     global.bot.on(
       'callback_query',
-      async ({ from }: TelegramBot.CallbackQuery) => {
+      async ({ from, id: callback_query_id }: TelegramBot.CallbackQuery) => {
         try {
           const userId = from.id;
           const user = await this.botRepository.findOne({ where: { userId } });
@@ -52,6 +58,10 @@ export class BotService implements OnModuleInit {
           if (hasPassedDay(user.date)) return;
           await global.bot.approveChatJoinRequest(user.chatId, userId);
           await this.botRepository.destroy({ where: { userId } });
+          // Method has deprecated
+          await global.bot.answerCallbackQuery({
+            callback_query_id,
+          });
         } catch (e) {
           console.log(e);
         }
