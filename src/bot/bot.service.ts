@@ -33,6 +33,7 @@ export class BotService implements OnModuleInit {
       }: TelegramBot.ChatJoinRequest) => {
         try {
           const userId = user_chat_id;
+          if (from.is_bot) return;
           const isInclude = await this.botRepository.findOne({
             where: { userId },
           });
@@ -67,6 +68,7 @@ export class BotService implements OnModuleInit {
       let isHasUser = false;
 
       try {
+        if (from.is_bot) return;
         if (text !== btnValidMsg) return;
         const user = await this.botRepository.findOne({ where: { userId } });
         isHasUser = !!user;
